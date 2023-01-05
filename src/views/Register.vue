@@ -27,6 +27,7 @@
                     <input type="text" placeholder="Password" v-model="password">
                     <password class="icon" />
                 </div>
+                <div class="error" v-show="error">{{ errorMsg }}</div>
             </div>
             <button class="button">Sign Up</button>
             <div class="angle"></div>
@@ -41,6 +42,12 @@
 import email from '../assets/Icons/envelope-regular.svg';
 import password from '../assets/Icons/lock-alt-solid.svg';
 import user from '../assets/Icons/user-alt-light.svg';
+import firebase from 'firebase/app';
+import "firebase/auth";
+import db from "../firebase/firebaseInit";
+
+
+
 
     export default {
         name: "Register",
@@ -56,7 +63,33 @@ import user from '../assets/Icons/user-alt-light.svg';
             username: null,
             email: null,
             password: null,
+            error: null,
+            errorMsg: null,
         };
+    },
+    methods: {
+        async register() {
+            if(
+                this.email !== "" ||
+                this.password !== "" ||
+                this.firstName !== "" ||
+                this.lastName !== "" ||
+                this.username !== "" 
+            ) { 
+                this.error = false;
+                this.errorMsg = "";
+                const firebaseAuth = await firebase.auth();
+                const createUser = await firebaseAuth.createUserWithEmailAndPassword(this.email, this.password);
+
+
+
+
+                return;
+            }
+                this.error = true;
+                this.errorMsg = "Please, fill out all the fields!";
+                return;
+        },
     },
 };
 </script>
