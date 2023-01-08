@@ -2,7 +2,7 @@
     <div class="form-wrap">
         <form class="register">
             <p class="login-register">
-                Alresdy have an account?
+                Already have an account?
                 <router-link class="router-link" :to="{ name: 'Login'}">Register</router-link>
             </p>
             <h2>Create your FireBlog account</h2>
@@ -29,7 +29,7 @@
                 </div>
                 <div class="error" v-show="error">{{ errorMsg }}</div>
             </div>
-            <button class="button">Sign Up</button>
+            <button @click.prevent="register" class="button">Sign Up</button>
             <div class="angle"></div>
         </form>
         <div class="background"></div>
@@ -58,28 +58,38 @@ import db from "../firebase/firebaseInit";
     },
     data() {
         return {
-            firstName: null,
-            lastName: null,
-            username: null,
-            email: null,
-            password: null,
+            firstName: "",
+            lastName: "",
+            username: "",
+            email: "",
+            password: "",
             error: null,
-            errorMsg: null,
+            errorMsg: "",
         };
     },
     methods: {
         async register() {
             if(
-                this.email !== "" ||
-                this.password !== "" ||
-                this.firstName !== "" ||
-                this.lastName !== "" ||
+                this.email !== "" &&
+                this.password !== "" &&
+                this.firstName !== "" &&
+                this.lastName !== "" &&
                 this.username !== "" 
             ) { 
                 this.error = false;
                 this.errorMsg = "";
                 const firebaseAuth = await firebase.auth();
                 const createUser = await firebaseAuth.createUserWithEmailAndPassword(this.email, this.password);
+                const result = await createUser;
+                const dataBase = db.collection("users").doc(result.user.uid);
+                await dataBase.set({
+                    firstName: this.firstName,
+                    lastName: this.lastName,
+                    username: this.username,
+                    email: this.email,
+                });
+
+                this.$router.push({ name: "Home"});
 
 
 
