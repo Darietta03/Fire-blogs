@@ -99,7 +99,7 @@ export default {
   }
 }
 
-.button,
+button,
 .router-button {
   transition: 500ms ease all;
   cursor: pointer;

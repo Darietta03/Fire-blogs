@@ -15,7 +15,7 @@
                 </div>
                 <div class="input">
                     <label for="firstName">Last name:</label>
-                    <input type="text" id="LastName" v-model="LastName" />
+                    <input type="text" id="LastName" v-model="lastName" />
                 </div>
                 <div class="input">
                     <label for="username">User name:</label>
@@ -23,9 +23,9 @@
                 </div>
                 <div class="input">
                     <label for="email">Email</label>
-                    <input type="text" id="email" v-model="email" />
+                    <input disabled type="text" id="email" v-model="email" />
                 </div>
-                <button>Save changes</button>
+                <button @click="updateProfile" class="button">Save changes</button>
             </div>
         </div>
     </div>
@@ -45,13 +45,48 @@ export default {
     data() {
         return {
             modalMessage: "Changes are saved",
-            modalActive: true,
+            modalActive: null,
         };
     },
 
     methods: {
+        
+        updateProfile() {
+            this.$store.dispatch("updateUserSettings");
+            this.modalActive = !this.modalActive;
+        },
+
         closeModal() {
             this.modalActive = !this.modalActive;
+        },
+    },
+    computed: {
+        firstName: {
+            get() {
+                return this.$store.state.profileFirstName;
+            },
+            set(payload) {
+                this.$store.commit("changeFirstName", payload);
+            },
+        },
+        lastName: {
+            get() {
+                return this.$store.state.profileLastName;
+            },
+            set(payload) {
+                this.$store.commit("changeLastName", payload);
+            },
+        },
+        username: {
+            get() {
+                return this.$store.state.profileUserName;
+            },
+            set(payload) {
+                this.$store.commit("changeUsername", payload);
+            },
+        },
+        email() {
+            return this.$store.state.profileEmail;
         }
     }
 
