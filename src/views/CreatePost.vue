@@ -1,5 +1,6 @@
 <template>
     <div class="create-post">
+        <BlogCoverPreview v-show="this.$store.state.blogPhotoPreview"/>
         <div class="container">
             <div :class="{invisible: !error}" class="err-message">
                 <p><span>Error:</span>{{ this.errorMsg }}</p>
@@ -9,30 +10,39 @@
                 <div class="upload-file">
                     <label for="blog-photo">Upload Cover Photo</label>
                     <input type="file" ref="blogPhoto" id="blog-photo" @change="fileChange" accept=".png, .jpg, .jpeg"/>
-                    <button class="preview" :class="{'button-inactive': this.$store.state.blogPhotoFileURL }">Preview Photo</button>
+                    <button @click="openPreview" class="preview" :class="{'button-inactive': !this.$store.state.blogPhotoFileURL }">Preview Photo</button>
                     <span>File Chosen: {{ this.$store.state.blogPhotoName }}</span>
                 </div>
             </div>
             <div class="editor">
-                <vue-editor :editorOptions="editorSettings" v-model="blogHTML" useCustomImageHandler />
+                <vue-editor :editorOptions="editorSettings" v-model="blogHTML" useCustomImageHandler @image-added="imageHandler" />
             </div>
             <div class="blog-actions">
-                <button class="button">Publish Blog</button>
-                <router-link class="router-button" to="#">Post Preview</router-link>
+                <button @click="uploadBlog" class="button">Publish Blog</button>
+                <router-link class="router-button" :to="{ name: 'BlogPreview'}">Post Preview</router-link>
             </div>
         </div>
     </div>
 </template>
 
 <script>
+import BlogCoverPreview from "../components/BlogCoverPreview";
+import firebase from 'firebase/app';
+import "firebase/storage";
+//import db from "../firebase/firebaseInit";
 
 import Quill from "quill";
 window.Quill = Quill;
 const ImageResize = require("quill-image-resize-module").default;
 Quill.register("modules/imageResize", ImageResize);
 
+
     export default {
         name: "CreatePost",
+
+        components: {
+            BlogCoverPreview,
+        },
 
         data() {
             return {
@@ -52,7 +62,50 @@ Quill.register("modules/imageResize", ImageResize);
                 const fileName = this.file.name;
                 this.$store.commit("fileNameChange", fileName);
                 this.$store.commit("createFileURL", URL.createObjectURL(this.file));
-            }
+            },
+            openPreview() {
+                this.$store.commit("openPhotoPreview");
+            },
+
+            imageHandler(file, Editor, cursorLocation, resetUploader) {
+                const storageRef = firebase.storage().ref();
+                const docRef = storageRef.child(`documents/blogPostPhotos/${file.name}`);
+                docRef.put(file).on(
+                    "state_changed",
+                    (snapshot) => {
+                        console.log(snapshot);
+                    },
+                    (err) => {
+                        console.log(err);
+                    },
+                    async () => {
+                        const downloadURL = await docRef.getDownloadURL();
+                        Editor.insertEmbed(cursorLocation, "image", downloadURL);
+                        resetUploader();
+                    }
+                );
+            },
+
+            uploadBlog() {
+                if( this.blogTitle.length != 0 && this.blogHTML != 0 ) {
+                    if(this.file) {
+                        //
+                        return;
+                    }
+                    this.error = true;
+                    this.errorMsg = "Please ensure you uploaded a cover photo!";
+                    setTimeout(() => {
+                    this.error = false
+                    }, 5000);
+                    return;    
+                }
+                this.error = true;
+                this.errorMsg = "Please ensure Blog Title & Blog Post has been failled!";
+                setTimeout(() => {
+                    this.error = false
+                }, 5000);
+                return;
+            },
         },
         computed: {
             profileId() {
