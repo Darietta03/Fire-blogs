@@ -42,17 +42,14 @@ Quill.register("modules/imageResize", ImageResize);
     export default {
         name: "CreatePost",
 
-        components: {
-            BlogCoverPreview,
-            Loading,
-        },
-
         data() {
             return {
                 file: null,
                 loading: null,
                 error: null,
                 errorMsg: null,
+                routeID: null,
+                currentBlog: null,
                 editorSettiings: {
                     modules: {
                         imageResize: {},
@@ -60,6 +57,20 @@ Quill.register("modules/imageResize", ImageResize);
                 },
             };
         },
+
+        components: {
+            BlogCoverPreview,
+            Loading,
+        },
+
+        async mounted() {
+            this.routeID = this.$route.params.blogid;
+            this.currentBlog = await this.$store.state.blogPosts.filter((post) => {
+                return post.blogID === this.routeID;
+            });
+            this.$store.commit('setBlogState', this.currentBlog[0])
+        },
+
         methods: {
             fileChange() {
                 this.file = this.$refs.blogPhoto.files[0];
